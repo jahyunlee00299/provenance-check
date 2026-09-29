@@ -300,3 +300,10 @@ def test_python_dash_m(tmp_path):
     r = subprocess.run([sys.executable, "-m", "provenance_check", "check", str(p)],
                        capture_output=True, text=True, encoding="utf-8")
     assert r.returncode == 0, r.stderr
+
+
+def test_p3_instrument_todo_placeholder(tmp_path, capsys):
+    p = make(tmp_path)
+    p.write_text(p.read_text(encoding="utf-8").replace('"HPLC-RID"', '"TODO"'), encoding="utf-8")
+    rc, doc = run_json(p, capsys)
+    assert rc == 1 and rules(doc) == {"metadata-missing"}

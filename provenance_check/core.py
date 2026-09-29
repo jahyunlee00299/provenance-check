@@ -150,9 +150,9 @@ def _check_constant(key: str, c: dict, base: Path, today: _dt.date) -> list[dict
 
     # P3: metadata
     inst = c.get("instrument")
-    if not isinstance(inst, str) or not inst.strip():
+    if not isinstance(inst, str) or not inst.strip() or inst.strip().upper() == "TODO":
         out.append(_finding(key, "metadata-missing",
-                            f"{key}: `instrument` is missing; a measurement with no instrument "
+                            f"{key}: `instrument` is missing or a TODO placeholder; a measurement with no instrument "
                             "cannot be judged for bias or range."))
     if "measured_at" not in c:
         out.append(_finding(key, "metadata-missing",
