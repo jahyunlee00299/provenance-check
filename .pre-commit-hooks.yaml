@@ -1,0 +1,7 @@
+- id: provenance-check
+  name: provenance-check
+  description: Refuse a derived constant whose source data, hash, date, instrument or range does not hold.
+  entry: provenance-check check
+  language: python
+  files: 'provenance\.toml$'
+  pass_filenames: true
