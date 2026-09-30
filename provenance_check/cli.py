@@ -105,7 +105,7 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def _run(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="provenance-check", description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check", help="check a provenance.toml")
@@ -123,6 +123,14 @@ def main(argv: list[str] | None = None) -> int:
     i.set_defaults(fn=_cmd_init)
     args = ap.parse_args(argv)
     return args.fn(args)
+
+
+def main(argv: list[str] | None = None) -> int:
+    rc = _run(argv)
+    from . import __version__, _update_notice
+
+    _update_notice.notify("provenance-check", __version__)
+    return rc
 
 
 if __name__ == "__main__":
