@@ -129,7 +129,10 @@ def main(argv: list[str] | None = None) -> int:
     rc = _run(argv)
     from . import __version__, _update_notice
 
-    _update_notice.notify("provenance-check", __version__)
+    try:  # the notice must never replace the command's exit code
+        _update_notice.notify("provenance-check", __version__)
+    except Exception:
+        pass
     return rc
 
 
