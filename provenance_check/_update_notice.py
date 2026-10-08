@@ -31,15 +31,18 @@ def _latest(dist: str) -> str | None:
     f = _cache_file(dist)
     try:
         c = json.loads(f.read_text(encoding="utf-8"))
-        if time.time() - c["t"] < _TTL_S:
+        age = time.time() - float(c["t"])
+        if 0 <= age < _TTL_S:  # a future timestamp (clock change) is not a fresh cache
             return c["v"]
-    except (OSError, ValueError, KeyError):
+    except (OSError, ValueError, KeyError, TypeError):
         pass
     v = None
     try:
         url = f"https://pypi.org/pypi/{dist}/json"
         with urllib.request.urlopen(url, timeout=_TIMEOUT_S) as r:
             v = json.load(r)["info"]["version"]
+        if not isinstance(v, str):
+            v = None
     except Exception:  # offline, 404 (not on PyPI), bad JSON: all silent
         pass
     try:

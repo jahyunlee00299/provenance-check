@@ -84,3 +84,44 @@ def test_stale_cache_refetches(tmp_path, monkeypatch):
         lambda *a, **k: R(json.dumps({"info": {"version": "3.0.0"}})),
     )
     assert un._latest("d") == "3.0.0"
+
+
+def test_future_timestamp_cache_is_not_fresh(tmp_path, monkeypatch):
+    _seed(tmp_path, "d", "9.9.9", age=-10 * un._TTL_S)
+
+    class R(io.StringIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(
+        un.urllib.request, "urlopen",
+        lambda *a, **k: R(json.dumps({"info": {"version": "1.2.3"}})),
+    )
+    assert un._latest("d") == "1.2.3"
+
+
+@pytest.mark.parametrize("payload", ["[]", '{"t": "x", "v": "9.9.9"}', '{"t": null, "v": "9.9.9"}'])
+def test_garbage_cache_is_ignored_not_raised(tmp_path, monkeypatch, payload):
+    f = un._cache_file("d")
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(payload)
+    monkeypatch.setattr(un.urllib.request, "urlopen", lambda *a, **k: (_ for _ in ()).throw(OSError("offline")))
+    assert un._latest("d") is None
+
+
+def test_non_string_version_from_pypi_is_none(tmp_path, monkeypatch):
+    class R(io.StringIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(
+        un.urllib.request, "urlopen",
+        lambda *a, **k: R(json.dumps({"info": {"version": 3}})),
+    )
+    assert un._latest("d") is None
